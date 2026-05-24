@@ -1,5 +1,5 @@
 mod control;
-#[path = "domain.rs"]
+#[path = "events.rs"]
 mod model;
 mod snubber_node;
 
