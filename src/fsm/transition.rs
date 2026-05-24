@@ -1,25 +1,22 @@
 use crate::fsm::{Action, Guard, State};
 
-pub struct Transition<R, E>
-where
-    E: std::error::Error,
-{
-    from: Box<dyn State<E>>,
-    to: Box<dyn State<E>>,
-    guard: Box<dyn Guard>,
-    action: Box<dyn Action<R, E>>,
+pub enum TransitionResult<T, S> {
+    Transitioned(T),
+    Stayed(S),
 }
 
-impl<R, E> Transition<R, E>
+pub struct Transition<F, T, G, A> {
+    from: F,
+    to: T,
+    guard: G,
+    action: A,
+}
+
+impl<F, T, G, A> Transition<F, T, G, A>
 where
-    E: std::error::Error,
+    G: Guard,
 {
-    pub fn new(
-        from: Box<dyn State<E>>,
-        to: Box<dyn State<E>>,
-        guard: Box<dyn Guard>,
-        action: Box<dyn Action<R, E>>,
-    ) -> Self {
+    pub fn new(from: F, to: T, guard: G, action: A) -> Self {
         Self {
             from,
             to,
@@ -28,14 +25,20 @@ where
         }
     }
 
-    pub fn on_trigger(self) -> Result<Box<dyn State<E>>, E> {
+    pub fn on_trigger<R, E>(self) -> Result<TransitionResult<T, F>, E>
+    where
+        E: std::error::Error,
+        F: State<E>,
+        T: State<E>,
+        A: Action<R, E>,
+    {
         if self.guard.check() {
             self.from.on_exit()?;
             self.action.execute()?;
             self.to.on_enter()?;
-            Ok(self.to)
+            Ok(TransitionResult::Transitioned(self.to))
         } else {
-            Ok(self.from)
+            Ok(TransitionResult::Stayed(self.from))
         }
     }
 }

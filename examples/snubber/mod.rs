@@ -1,7 +1,7 @@
 mod control;
 #[path = "events.rs"]
 mod model;
-mod snubber_node;
+pub mod snubber_node;
 
 pub(crate) use control::Control;
 pub use model::{AcceptingNode, JoiningNode, Node, Power, SnubberEvent};

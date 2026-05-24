@@ -9,3 +9,6 @@ pub use guard::Guard;
 
 mod action;
 pub use action::Action;
+
+mod event;
+pub use event::Event;

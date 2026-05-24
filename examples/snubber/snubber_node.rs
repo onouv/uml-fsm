@@ -13,4 +13,12 @@ impl SnubberNode {
             control: Control::default(),
         }
     }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn projected_load(&self) -> Power {
+        self.projected_load
+    }
 }

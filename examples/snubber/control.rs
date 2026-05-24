@@ -17,3 +17,9 @@ impl Default for Control {
         Self
     }
 }
+
+impl Control {
+    pub fn run() -> ! {
+        loop {}
+    }
+}
