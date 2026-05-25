@@ -10,3 +10,12 @@ pub use guard::Guard;
 mod event;
 pub use event::Event;
 pub use event::HandleEvent;
+
+mod runtime;
+pub use runtime::{
+    ActionRunner, ActionSink, DispatchEvent, EventSink, EventSource, FixedActionSink,
+    FixedEventQueue, NoActions,
+};
+
+#[cfg(feature = "heapless")]
+pub use runtime::{HeaplessActionSink, HeaplessEventQueue};

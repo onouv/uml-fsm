@@ -1,0 +1,16 @@
+@startuml
+state Gathering 
+state Traveling
+state Arrived
+state Disbanded
+
+
+[*] --> Gathering
+Gathering --> Gathering : AddMember
+Gathering --> Gathering : RemoveMember [attendees > 0]
+Gathering --> Disbanded : RemoveMember [attendees == 0] 
+Gathering --> Traveling : Depart [attendees >= 1]
+Traveling --> Arrived : Arrive
+Arrived --> Arrived : RemoveMember [attendees > 0]
+Arrived --> Disbanded : Disband, RemoveMember [attendees == 0]
+@enduml

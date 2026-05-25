@@ -3,8 +3,17 @@ name = "uml-fsm"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+heapless = ["dep:heapless"]
+
 [dependencies]
+heapless = { version = "0.8", optional = true }
 
 [[example]]
-name = "party"
-path = "examples/party/main.rs"
+name = "party-typestate"
+path = "examples/party/typestate/main.rs"
+
+[[example]]
+name = "party-runtime"
+path = "examples/party/runtime/main.rs"
