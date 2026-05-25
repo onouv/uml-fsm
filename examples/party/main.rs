@@ -1,5 +1,5 @@
-mod party;
-use party::{Gathering, GatheringOrTraveling};
+mod party_fsm;
+use party_fsm::{Gathering, GatheringOrTraveling};
 
 mod events;
 use events::{AddMember, BreakUp, Depart, DestinationReached};
@@ -11,8 +11,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let destination = "Beach".to_string();
 
     let gathering = Gathering::new(origin);
-    //let gathering = gathering.handle(AddMember("Alice".to_string()))?;
-    //let gathering = gathering.handle(AddMember("Bob".to_string()))?;
+    let gathering = gathering.handle(AddMember("Alice".to_string()))?;
+    let gathering = gathering.handle(AddMember("Bob".to_string()))?;
 
     let traveling = match gathering.handle(Depart(destination))? {
         GatheringOrTraveling::Gathering(stayed) => {

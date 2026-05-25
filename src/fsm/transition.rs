@@ -1,42 +1,47 @@
-use crate::fsm::{Action, Event, Guard, State};
+use crate::fsm::{Event, Guard, State};
 use std::marker::PhantomData;
-
+pub trait TransitionEffect<S, Evt, Err>
+where
+    Err: std::error::Error,
+{
+    fn execute(&self, state: &S, event: &Evt) -> Result<(), Err>;
+}
 pub enum TransitionResult<T, S> {
     Transitioned(T),
     Stayed(S),
 }
 
-pub struct Transition<S, Ev, Next, G, A> {
+pub struct Transition<S, Evt, Next, G, Eff> {
     target: Next,
     guard: G,
-    action: A,
-    _marker: PhantomData<(S, Ev)>,
+    effect: Eff,
+    _marker: PhantomData<(S, Evt)>,
 }
 
-impl<S, Ev, Next, G, A> Transition<S, Ev, Next, G, A>
+impl<S, Evt, Next, G, Eff> Transition<S, Evt, Next, G, Eff>
 where
-    G: Guard<S, Ev>,
+    G: Guard<S, Evt>,
 {
-    pub fn new(target: Next, guard: G, action: A) -> Self {
+    pub fn new(target: Next, guard: G, effect: Eff) -> Self {
         Self {
             target,
             guard,
-            action,
+            effect,
             _marker: PhantomData,
         }
     }
 
-    pub fn fire<E>(self, state: S, event: Ev) -> Result<TransitionResult<Next, S>, E>
+    pub fn fire<Err>(self, state: S, event: Evt) -> Result<TransitionResult<Next, S>, Err>
     where
-        E: std::error::Error,
-        S: State<E>,
-        Ev: Event,
-        Next: State<E>,
-        A: Action<S, Ev, E>,
+        Err: std::error::Error,
+        S: State<Err>,
+        Evt: Event,
+        Next: State<Err>,
+        Eff: TransitionEffect<S, Evt, Err>,
     {
         if self.guard.check(&state, &event) {
             state.on_exit()?;
-            self.action.execute(&state, &event)?;
+            self.effect.execute(&state, &event)?;
             let next = self.target;
             next.on_enter()?;
             Ok(TransitionResult::Transitioned(next))
