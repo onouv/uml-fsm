@@ -1,10 +1,7 @@
 use crate::fsm::{Event, Guard, State};
-use std::marker::PhantomData;
-pub trait TransitionEffect<S, Evt, Err>
-where
-    Err: std::error::Error,
-{
-    fn execute(&self, state: &S, event: &Evt) -> Result<(), Err>;
+use core::marker::PhantomData;
+pub trait TransitionEffect<S, Evt> {
+    fn execute(&self, state: &S, event: &Evt);
 }
 pub enum TransitionResult<T, S> {
     Transitioned(T),
@@ -31,22 +28,21 @@ where
         }
     }
 
-    pub fn fire<Err>(self, state: S, event: Evt) -> Result<TransitionResult<Next, S>, Err>
+    pub fn fire(self, state: S, event: Evt) -> TransitionResult<Next, S>
     where
-        Err: std::error::Error,
-        S: State<Err>,
+        S: State,
         Evt: Event,
-        Next: State<Err>,
-        Eff: TransitionEffect<S, Evt, Err>,
+        Next: State,
+        Eff: TransitionEffect<S, Evt>,
     {
         if self.guard.check(&state, &event) {
-            state.on_exit()?;
-            self.effect.execute(&state, &event)?;
+            state.on_exit();
+            self.effect.execute(&state, &event);
             let next = self.target;
-            next.on_enter()?;
-            Ok(TransitionResult::Transitioned(next))
+            next.on_enter();
+            TransitionResult::Transitioned(next)
         } else {
-            Ok(TransitionResult::Stayed(state))
+            TransitionResult::Stayed(state)
         }
     }
 }
