@@ -1,3 +1,3 @@
-pub trait Guard {
-    fn check(&self) -> bool;
+pub trait Guard<S, Evt> {
+    fn check(&self, state: &S, event: &Evt) -> bool;
 }

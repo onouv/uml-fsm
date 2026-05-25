@@ -1,4 +1,3 @@
-pub mod domain;
-pub mod fsm;
+#![no_std]
 
-pub use domain::SnubberNode;
+pub mod fsm;

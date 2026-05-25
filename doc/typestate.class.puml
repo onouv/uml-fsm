@@ -1,0 +1,70 @@
+@startuml
+allow_mixing
+hide empty members
+skinparam packageStyle rectangle
+
+package uml_fsm {
+    
+}
+package party
+package runtime
+
+/'
+package uml_fsm {
+    interface "HandleCommand<Cmd, Act>" as HandleCommand <<(T)>>
+    interface "ActionSink<Act>" as ActionSink <<(T)>>
+    interface "ActionRunner<Act, Evt>" as ActionRunner <<(T)>>
+    interface "DispatchEvent<Evt, Act>" as Dispatch <<(T)>>
+
+    struct FixedActionSink
+
+    FixedActionSink .up.|> ActionSink
+}
+
+package party {
+    interface "ActionRunner<PartyAction, PartyEvent>" as ActRun1 <<(T)>>
+    interface "HandleCommand<PartyCommand, PartyAction>" as HandleCmd1 <<(T)>>
+    interface "DispatchEvent<PartyEvent, PartyAction>" as Dispatch1 <<(T)>> 
+    
+    struct ConsoleRunner {
+        run_action(action: PartyAction)
+    }
+
+    enum PartyEvent
+    enum PartAction
+    enum PartyCommand
+    enum PartyState
+    
+    struct PartyMachine
+    struct Party {
+        domain_data
+    }
+
+    PartyMachine o--> Party
+    PartyMachine o--> PartyState
+}
+
+
+
+package runtime {
+    class main <<(F)>>
+    class run_feedback_loop <<(F)>>
+
+    main -up-> run_feedback_loop
+}
+
+ActRun1 .up.> ActionRunner
+ConsoleRunner .up.|> ActRun1
+Dispatch1 .up.|> Dispatch
+HandleCmd1 .up.> HandleCommand
+PartyMachine .up.> HandleCmd1
+PartyMachine .up.|> Dispatch1
+
+run_feedback_loop -up-> PartyMachine
+run_feedback_loop -up-> ConsoleRunner
+run_feedback_loop -up-> FixedActionSink
+}
+'/
+
+
+@enduml

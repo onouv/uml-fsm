@@ -1,41 +1,52 @@
-use crate::fsm::{Action, Guard, State};
-
-pub struct Transition<R, E>
+use crate::fsm::{Event, Guard, State};
+use core::marker::PhantomData;
+pub trait TransitionEffect<S, Evt>
 where
-    E: std::error::Error,
+    S: State,
+    Evt: Event,
 {
-    from: Box<dyn State<E>>,
-    to: Box<dyn State<E>>,
-    guard: Box<dyn Guard>,
-    action: Box<dyn Action<R, E>>,
+    fn execute(&self, state: &S, event: &Evt);
+}
+pub enum TransitionResult<T, S> {
+    Transitioned(T),
+    Stayed(S),
 }
 
-impl<R, E> Transition<R, E>
+pub struct Transition<S, Evt, Next, G, Eff> {
+    target: Next,
+    guard: G,
+    effect: Eff,
+    _marker: PhantomData<(S, Evt)>,
+}
+
+impl<S, Evt, Next, G, Eff> Transition<S, Evt, Next, G, Eff>
 where
-    E: std::error::Error,
+    G: Guard<S, Evt>,
 {
-    pub fn new(
-        from: Box<dyn State<E>>,
-        to: Box<dyn State<E>>,
-        guard: Box<dyn Guard>,
-        action: Box<dyn Action<R, E>>,
-    ) -> Self {
+    pub fn new(target: Next, guard: G, effect: Eff) -> Self {
         Self {
-            from,
-            to,
+            target,
             guard,
-            action,
+            effect,
+            _marker: PhantomData,
         }
     }
 
-    pub fn on_trigger(self) -> Result<Box<dyn State<E>>, E> {
-        if self.guard.check() {
-            self.from.on_exit()?;
-            self.action.execute()?;
-            self.to.on_enter()?;
-            Ok(self.to)
+    pub fn fire(self, state: S, event: Evt) -> TransitionResult<Next, S>
+    where
+        S: State,
+        Evt: Event,
+        Next: State,
+        Eff: TransitionEffect<S, Evt>,
+    {
+        if self.guard.check(&state, &event) {
+            state.on_exit();
+            self.effect.execute(&state, &event);
+            let next = self.target;
+            next.on_enter();
+            TransitionResult::Transitioned(next)
         } else {
-            Ok(self.from)
+            TransitionResult::Stayed(state)
         }
     }
 }
