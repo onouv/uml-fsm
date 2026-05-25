@@ -1,44 +1,47 @@
-use crate::fsm::{Action, Guard, State};
+use crate::fsm::{Action, Event, Guard, State};
+use std::marker::PhantomData;
 
 pub enum TransitionResult<T, S> {
     Transitioned(T),
     Stayed(S),
 }
 
-pub struct Transition<F, T, G, A> {
-    from: F,
-    to: T,
+pub struct Transition<S, Ev, Next, G, A> {
+    target: Next,
     guard: G,
     action: A,
+    _marker: PhantomData<(S, Ev)>,
 }
 
-impl<F, T, G, A> Transition<F, T, G, A>
+impl<S, Ev, Next, G, A> Transition<S, Ev, Next, G, A>
 where
-    G: Guard,
+    G: Guard<S, Ev>,
 {
-    pub fn new(from: F, to: T, guard: G, action: A) -> Self {
+    pub fn new(target: Next, guard: G, action: A) -> Self {
         Self {
-            from,
-            to,
+            target,
             guard,
             action,
+            _marker: PhantomData,
         }
     }
 
-    pub fn on_trigger<R, E>(self) -> Result<TransitionResult<T, F>, E>
+    pub fn fire<E>(self, state: S, event: Ev) -> Result<TransitionResult<Next, S>, E>
     where
         E: std::error::Error,
-        F: State<E>,
-        T: State<E>,
-        A: Action<R, E>,
+        S: State<E>,
+        Ev: Event,
+        Next: State<E>,
+        A: Action<S, Ev, E>,
     {
-        if self.guard.check() {
-            self.from.on_exit()?;
-            self.action.execute()?;
-            self.to.on_enter()?;
-            Ok(TransitionResult::Transitioned(self.to))
+        if self.guard.check(&state, &event) {
+            state.on_exit()?;
+            self.action.execute(&state, &event)?;
+            let next = self.target;
+            next.on_enter()?;
+            Ok(TransitionResult::Transitioned(next))
         } else {
-            Ok(TransitionResult::Stayed(self.from))
+            Ok(TransitionResult::Stayed(state))
         }
     }
 }

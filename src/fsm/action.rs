@@ -1,6 +1,6 @@
-pub trait Action<R, E>
+pub trait Action<S, Evt, Err>
 where
-    E: std::error::Error,
+    Err: std::error::Error,
 {
-    fn execute(&self) -> Result<R, E>;
+    fn execute(&self, state: &S, event: &Evt) -> Result<(), Err>;
 }
