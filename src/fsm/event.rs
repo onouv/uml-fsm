@@ -1,11 +1,11 @@
 /// A marker trait for events that trigger transitions in the FSM.
 pub trait Event {}
 
-pub trait HandleEvent<Ev>
+pub trait HandleEvent<Evt>
 where
-    Ev: Event,
+    Evt: Event,
 {
     type Output;
 
-    fn handle(self, event: Ev) -> Self::Output;
+    fn handle(self, event: Evt) -> Self::Output;
 }

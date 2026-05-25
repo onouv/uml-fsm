@@ -1,6 +1,10 @@
 use crate::fsm::{Event, Guard, State};
 use core::marker::PhantomData;
-pub trait TransitionEffect<S, Evt> {
+pub trait TransitionEffect<S, Evt>
+where
+    S: State,
+    Evt: Event,
+{
     fn execute(&self, state: &S, event: &Evt);
 }
 pub enum TransitionResult<T, S> {

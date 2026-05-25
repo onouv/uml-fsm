@@ -29,8 +29,8 @@ pub struct Disbanded;
 
 pub struct AlwaysGuard;
 
-impl<S, Ev> Guard<S, Ev> for AlwaysGuard {
-    fn check(&self, _state: &S, _event: &Ev) -> bool {
+impl<S, Evt> Guard<S, Evt> for AlwaysGuard {
+    fn check(&self, _state: &S, _event: &Evt) -> bool {
         true
     }
 }
@@ -45,8 +45,12 @@ impl Guard<Gathering, Depart> for CanDepartGuard {
 
 pub struct LogEffect;
 
-impl<S, Ev> TransitionEffect<S, Ev> for LogEffect {
-    fn execute(&self, _state: &S, _event: &Ev) {}
+impl<S, Evt> TransitionEffect<S, Evt> for LogEffect
+where
+    S: State,
+    Evt: uml_fsm::fsm::Event,
+{
+    fn execute(&self, _state: &S, _event: &Evt) {}
 }
 
 impl Gathering {
@@ -102,9 +106,9 @@ impl State for Traveling {
 impl State for Arrived {
     fn on_enter(&self) {
         println!(
-            "enter Arrived at {} ({} attendees)",
+            "enter Arrived at {} with these: {:?})",
             self.destination,
-            self.attendees.len()
+            self.attendees()
         );
     }
 
