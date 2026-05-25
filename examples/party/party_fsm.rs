@@ -128,6 +128,12 @@ impl HandleEvent<AddMember> for Gathering {
         let mut attendees = self.attendees.clone();
         attendees.push(event.0.clone());
 
+        println!(
+            "Gathering handles AddMember({}) -> {:?}",
+            event.0,
+            attendees.clone()
+        );
+
         let target = Gathering {
             origin: self.origin.clone(),
             attendees,
